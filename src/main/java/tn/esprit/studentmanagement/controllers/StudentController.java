@@ -31,4 +31,5 @@ IStudentService studentService;
 
     @DeleteMapping("/deleteStudent/{id}")
     public void deleteStudent(@PathVariable Long id) { studentService.deleteStudent(id); }
+    //simple changement pour first commit a ma branche
 }
