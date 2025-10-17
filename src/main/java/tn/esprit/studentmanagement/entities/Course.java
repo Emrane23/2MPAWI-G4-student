@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
-
+// Modification faite par Dorra Saoudi pour le TP git
 @Entity
 @Getter
 @Setter
