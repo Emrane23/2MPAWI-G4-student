@@ -10,7 +10,7 @@
     </parent>
     <groupId>tn.esprit</groupId>
     <artifactId>student-management</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.3-RELEASE</version>
     <name>student-management</name>
     <description>student-management</description>
     <url/>
@@ -63,7 +63,7 @@
     </dependencies>
 
     <build>
-        <plugins>
+    <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -79,12 +79,4 @@
         </plugins>
     </build>
 
-    <!-- AJOUTEZ CETTE SECTION POUR NEXUS -->
-    <distributionManagement>
-        <repository>
-            <id>deploymentRepo</id>
-            <name>Nexus Repository</name>
-            <url>http://localhost:8081/repository/maven-snapshots/</url>
-        </repository>
-    </distributionManagement>
 </project>
