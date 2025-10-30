@@ -8,7 +8,7 @@ import tn.esprit.studentmanagement.entities.Enrollment;
 import java.util.List;
 
 @Service
-public class EnrollmentService implements IEnrollment {
+public abstract class EnrollmentService implements IEnrollment {
     @Autowired
     EnrollmentRepository enrollmentRepository;
 
@@ -26,6 +26,10 @@ public class EnrollmentService implements IEnrollment {
     public Enrollment saveEnrollment(Enrollment enrollment) {
         return enrollmentRepository.save(enrollment);
     }
+
+    public abstract Enrollment addEnrollment(Enrollment enrollment);
+
+    public abstract Enrollment retrieveEnrollment(Long id);
 
     @Override
     public void deleteEnrollment(Long idEnrollment) {
