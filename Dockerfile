@@ -1,5 +1,5 @@
 # Étape 1 : utiliser une image Java légère
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk
 
 # Étape 2 : ajouter le jar généré dans le conteneur
 ARG JAR_FILE=target/*.jar
