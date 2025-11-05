@@ -1,5 +1,5 @@
 # Étape 1 : utiliser une image Java légère
-FROM openjdk:17-jdk-slim
+FROM openjdk:21-jdk-slim
 
 # Étape 2 : ajouter le jar généré dans le conteneur
 ARG JAR_FILE=target/*.jar
