@@ -11,7 +11,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import tn.esprit.studentmanagement.controllers.CourseController;
 import tn.esprit.studentmanagement.entities.Course;
 import tn.esprit.studentmanagement.services.CourseService;
-import tn.esprit.studentmanagement.StudentManagementApplication; // 👈 import main app
 
 import java.util.List;
 
@@ -19,7 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CourseController.class)
-class CourseControllerTestMosc {
+class CourseControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

@@ -8,8 +8,6 @@ import org.mockito.MockitoAnnotations;
 import tn.esprit.studentmanagement.entities.Course;
 import tn.esprit.studentmanagement.repositories.CourseRepository;
 import tn.esprit.studentmanagement.services.CourseService;
-import tn.esprit.studentmanagement.StudentManagementApplication; // 👈 import main app
-
 
 import java.util.Arrays;
 import java.util.List;
