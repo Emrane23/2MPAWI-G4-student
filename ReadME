@@ -1,0 +1,25 @@
+# 1. Rebuild l'app
+mvn clean package -Dmaven.test.skip=true
+
+# 2. Nouvelle version de l'image
+docker build -t emrane/student-management:2 .
+
+# 3. Tester
+docker-compose down && docker-compose up -d
+
+# 4. Pousser
+docker push emrane/student-management:2
+________________________
+
+# 1. Se positionner dans le projet
+cd C:\Users\Emrane\Desktop\AWI\DevOps\student-managment
+
+# 2. Une seule commande pour tout relancer !
+docker-compose up -d
+
+# 3. Vérifier que tout fonctionne
+docker-compose ps
+
+# 4. Tester l'application
+curl http://localhost:8083/student/actuator/health
+# Ou dans le navigateur : http://localhost:8083/student/students/getAllStudents
