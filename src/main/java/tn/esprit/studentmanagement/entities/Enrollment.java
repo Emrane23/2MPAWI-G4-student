@@ -12,11 +12,14 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @ToString
 public class Enrollment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idEnrollment;
+
     private LocalDate enrollmentDate;
-    private Double grade;
+    private double grade;
+
     @Enumerated(EnumType.STRING)
     private Status status;
 
@@ -25,9 +28,4 @@ public class Enrollment {
 
     @ManyToOne
     private Course course;
-
-
-
-
-
 }
