@@ -1,0 +1,20 @@
+# Fichiers Terraform
+**/.terraform/*
+**/*.tfstate
+**/*.tfstate.*
+**/.terraform.lock.hcl
+**/terraform.tfvars
+**/override.tf
+**/override.tf.json
+**/*_override.tf
+**/*_override.tf.json
+
+# Fichiers de cache
+**/.terraform.lock.hcl
+
+# Fichiers de plan
+**/*.tfplan
+
+# Fichiers de variables sensibles
+**/.env
+**/*.env
