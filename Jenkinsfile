@@ -1,11 +1,18 @@
 pipeline {
     agent any
-    environment {
-        registry = "ghalia08/2mpawi-g4-student"
-        registryCredential = 'dockerhub'
-    }
 
     stages {
+        stages {
+        stage('Increment Version') {
+            steps {
+                script {
+                    // Read current version and increment
+                    def currentVersion = readMavenPom().getVersion()
+                    def newVersion = incrementVersion(currentVersion)
+                    sh "mvn versions:set -DnewVersion=${newVersion}"
+                }
+            }
+        }
         stage('CHECKOUT GIT') {
             steps {
                 git branch: 'ghaliamannai-2MPAWI-G4', 
@@ -46,51 +53,16 @@ pipeline {
             }
         }
 
-        // NEXUS ARTIFACT PUBLISHING - FIXED
+         // NEXUS ARTIFACT PUBLISHING
         stage('PUBLISH TO NEXUS') {
             steps {
-                script {
-                    // First package, then deploy
-                    bat 'mvn clean package -DskipTests'
-                    bat 'mvn deploy -DskipTests'
-                }
+                bat 'mvn deploy -DskipTests -Djacoco.skip=true'
             }
         }
 
         stage('PACKAGE APPLICATION') {
             steps {
                 bat 'mvn package -DskipTests'
-            }
-        }
-
-        // DOCKER STAGES ADDED
-        stage('BUILD DOCKER IMAGE') {
-            steps {
-                script {
-                    dockerImage = docker.build registry + ":latest"
-                }
-            }
-        }
-
-        stage('PUSH TO DOCKER HUB') {
-            steps {
-                script {
-                    docker.withRegistry('', registryCredential) {
-                        dockerImage.push()
-                    }
-                }
-            }
-        }
-
-        stage('TEST DOCKER CONTAINER') {
-            steps {
-                script {
-                    bat 'docker stop student-app || true'
-                    bat 'docker rm student-app || true'
-                    bat "docker run -d -p 8089:8089 --name student-app ${registry}:latest"
-                    bat 'timeout 30'
-                    bat 'curl http://localhost:8089/student/actuator/health || echo "Application starting..."'
-                }
             }
         }
     }
