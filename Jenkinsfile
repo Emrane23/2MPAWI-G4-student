@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         registry = "ghalia08/2mpawi-g4-student"
-        registryCredential = 'dockerhub'
+        registryCredential = 'ghalia08'
     }
 
     stages {
