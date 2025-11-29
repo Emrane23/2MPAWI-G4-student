@@ -6,6 +6,17 @@ pipeline {
     }
 
     stages {
+        stage('Increment Version') {
+            steps {
+                script {
+                    // Read current version and increment
+                    def currentVersion = readMavenPom().getVersion()
+                    def newVersion = incrementVersion(currentVersion)
+                    sh "mvn versions:set -DnewVersion=${newVersion}"
+                }
+            }
+        }
+
         stage('CHECKOUT GIT') {
             steps {
                 git branch: 'ghaliamannai-2MPAWI-G4', 
@@ -25,15 +36,31 @@ pipeline {
             }
         }
 
-        stage('RUN TESTS') {
+        stage('RUN DEPARTMENT TESTS') {
+            steps {
+                bat 'mvn test -Dtest=DepartmentServiceTest'
+            }
+        }
+
+        stage('RUN ALL TESTS') {
             steps {
                 bat 'mvn test'
             }
         }
 
+        // SONARQUBE ANALYSIS WITH TOKEN
         stage('SONARQUBE ANALYSIS') {
             steps {
-                bat 'mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=admin'
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    bat "mvn sonar:sonar -Dsonar.token=${SONAR_TOKEN}"
+                }
+            }
+        }
+
+         // NEXUS ARTIFACT PUBLISHING
+        stage('PUBLISH TO NEXUS') {
+            steps {
+                bat 'mvn deploy -DskipTests -Djacoco.skip=true'
             }
         }
 
@@ -43,12 +70,7 @@ pipeline {
             }
         }
 
-        stage('PUBLISH TO NEXUS') {
-            steps {
-                bat 'mvn deploy -DskipTests'
-            }
-        }
-
+        // DOCKER STAGES ADDED HERE
         stage('BUILD DOCKER IMAGE') {
             steps {
                 script {
@@ -67,11 +89,12 @@ pipeline {
             }
         }
 
-        stage('TEST WITH DOCKER COMPOSE') {
+        stage('TEST DOCKER CONTAINER') {
             steps {
                 script {
-                    bat 'docker-compose down'
-                    bat 'docker-compose up -d'
+                    bat 'docker stop student-app || true'
+                    bat 'docker rm student-app || true'
+                    bat "docker run -d -p 8089:8089 --name student-app ${registry}:latest"
                     bat 'timeout 30'
                     bat 'curl http://localhost:8089/student/actuator/health || echo "Application starting..."'
                 }
@@ -85,9 +108,10 @@ pipeline {
             archiveArtifacts 'target/*.jar'
         }
         success {
-            echo '🎉 Pipeline completed successfully!'
-            echo '🐳 Docker Image: ghalia08/2mpawi-g4-student:latest'
-            echo '🌐 App running at: http://localhost:8089/student'
+            echo '🎉 Pipeline completed successfully! Department tests passed!'
+        }
+        failure {
+            echo '❌ Pipeline failed! Check the test results.'
         }
     }
 }
