@@ -13,15 +13,6 @@ pipeline {
             }
         }
 
-        stage('MAVEN RELEASE') {
-            steps {
-                script {
-                    bat 'mvn release:clean release:prepare -DautoVersionSubmodules=true -DdevelopmentVersion=0.0.7-SNAPSHOT -DreleaseVersion=0.0.7 -DpushChanges=false -DtagNameFormat=@{project.version}'
-                    bat 'mvn release:perform'
-                }
-            }
-        }
-
         stage('MVN CLEAN') {
             steps {
                 bat 'mvn clean'
