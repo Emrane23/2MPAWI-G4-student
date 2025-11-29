@@ -42,6 +42,13 @@ pipeline {
             }
         }
 
+         // NEXUS ARTIFACT PUBLISHING
+        stage('PUBLISH TO NEXUS') {
+            steps {
+                bat 'mvn deploy -DskipTests -Djacoco.skip=true'
+            }
+        }
+
         stage('PACKAGE APPLICATION') {
             steps {
                 bat 'mvn package -DskipTests'

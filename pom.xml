@@ -91,7 +91,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.version}</version>
+                <version>0.8.11</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -113,6 +113,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <skip>${skip.coverage.check}</skip>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
@@ -150,9 +151,14 @@
 
     <distributionManagement>
         <repository>
-            <id>deploymentRepo</id>
+            <id>nexus-releases</id>
             <name>Nexus Release Repository</name>
             <url>http://localhost:8081/repository/maven-releases/</url>
         </repository>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <name>Nexus Snapshot Repository</name>
+            <url>http://localhost:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
 </project>
