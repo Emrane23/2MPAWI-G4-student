@@ -1,34 +1,31 @@
-version: '3.8'
 services:
-  mysql-db:
+  mysql:
     image: mysql:8.0
-    container_name: mysql-db
+    container_name: mysql
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: student_management
-      MYSQL_USER: app_user
-      MYSQL_PASSWORD: app_password
-      MYSQL_ROOT_HOST: '%'  # ← AJOUTE CETTE LIGNE
-    command: 
-      - --bind-address=0.0.0.0  # ← ET CETTE LIGNE
-      - --default-authentication-plugin=mysql_native_password
+      MYSQL_ROOT_PASSWORD: Ghalia21#   
+      MYSQL_DATABASE: studentdb            
     ports:
-      - "3307:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  student-app:
-    build: .
-    container_name: student-management
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/student_management
-      SPRING_DATASOURCE_USERNAME: app_user
-      SPRING_DATASOURCE_PASSWORD: app_password
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-    ports:
-      - "8083:8089"
+  springboot-app:
+    image: openjdk:21-jdk-alpine
+    container_name: springboot-app
+    build:
+      context: .
+      dockerfile: Dockerfile            
     depends_on:
-      - mysql-db
-
-volumes:
-  mysql_data:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mydb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Ghalia21#

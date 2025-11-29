@@ -1,12 +1,14 @@
-# Étape 1 : utiliser une image Java légère
-FROM openjdk:17-jdk-slim
+# Use Java 21 base image
+FROM eclipse-temurin:21-jdk-alpine
 
-# Étape 2 : ajouter le jar généré dans le conteneur
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} app.jar
+# Set working directory
+WORKDIR /app
 
-# Étape 3 : exposer le port (change-le si ton app utilise un autre)
-EXPOSE 8083
+# Copy JAR to container
+COPY target/student-management-0.0.3-RELEASE.jar app.jar
 
-# Étape 4 : exécuter ton app
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+# Expose port
+EXPOSE 8089
+
+# Run the app
+ENTRYPOINT ["java", "-jar", "app.jar"]
