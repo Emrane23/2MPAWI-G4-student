@@ -76,7 +76,6 @@ pipeline {
         stage('BUILD DOCKER IMAGE') {
             steps {
                 script {
-                    // Build the image and store it in a variable that persists across stages
                     docker.build("${registry}:latest")
                 }
             }
@@ -85,7 +84,6 @@ pipeline {
         stage('PUSH TO DOCKER HUB') {
             steps {
                 script {
-                    // Use the Docker Pipeline plugin to push the image
                     docker.withRegistry('', registryCredential) {
                         docker.image("${registry}:latest").push()
                     }
@@ -112,7 +110,7 @@ pipeline {
     post {
         always {
             archiveArtifacts 'target/*.jar'
-            // Final cleanup - use proper Windows batch syntax
+            // Final cleanup 
             script {
                 bat 'docker stop student-app 2>nul || echo "No container to stop in post-cleanup"'
                 bat 'docker rm student-app 2>nul || echo "No container to remove in post-cleanup"'
