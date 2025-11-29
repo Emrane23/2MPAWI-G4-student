@@ -65,6 +65,36 @@ pipeline {
                 bat 'mvn package -DskipTests'
             }
         }
+       
+        stage('BUILD DOCKER IMAGE') {
+            steps {
+                script {
+                    dockerImage = docker.build registry + ":latest"
+                }
+            }
+        }
+
+        stage('PUSH TO DOCKER HUB') {
+            steps {
+                script {
+                    docker.withRegistry('', registryCredential) {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+
+        stage('TEST DOCKER CONTAINER') {
+            steps {
+                script {
+                    bat 'docker stop student-app || true'
+                    bat 'docker rm student-app || true'
+                    bat "docker run -d -p 8089:8089 --name student-app ${registry}:latest"
+                    bat 'timeout 30'
+                    bat 'curl http://localhost:8089/student/actuator/health || echo "Application starting..."'
+                }
+            }
+        }
     }
 
     post {
