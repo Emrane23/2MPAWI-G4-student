@@ -1,31 +1,31 @@
 services:
-  mysql:
+  mysql-db:
     image: mysql:8.0
-    container_name: mysql
-    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: Ghalia21#   
-      MYSQL_DATABASE: studentdb            
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: studentdb
+      MYSQL_USER: studentuser
+      MYSQL_PASSWORD: studentpass
     ports:
-      - "3306:3306"
+      - "3307:3306"  
+    container_name: student-mysql-g4
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout: 20s
+      retries: 10
 
-  springboot-app:
-    image: openjdk:21-jdk-alpine
-    container_name: springboot-app
-    build:
-      context: .
-      dockerfile: Dockerfile            
-    depends_on:
-      mysql:
-        condition: service_healthy
+  student-app:
+    build: .
     ports:
       - "8089:8089"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mydb
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: Ghalia21#
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/studentdb
+      - SPRING_DATASOURCE_USERNAME=studentuser
+      - SPRING_DATASOURCE_PASSWORD=studentpass
+      - SERVER_PORT=8089
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    container_name: student-app-g4
+    restart: unless-stopped

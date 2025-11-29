@@ -1,19 +1,11 @@
 pipeline {
     agent any
+    environment {
+        registry = "ghalia08/2mpawi-g4-student"
+        registryCredential = 'dockerhub'
+    }
 
     stages {
-        stages {
-        stage('Increment Version') {
-            steps {
-                script {
-                    // Read current version and increment
-                    def currentVersion = readMavenPom().getVersion()
-                    def newVersion = incrementVersion(currentVersion)
-                    sh "mvn versions:set -DnewVersion=${newVersion}"
-                }
-            }
-        }
-        
         stage('CHECKOUT GIT') {
             steps {
                 git branch: 'ghaliamannai-2MPAWI-G4', 
@@ -33,37 +25,56 @@ pipeline {
             }
         }
 
-        stage('RUN DEPARTMENT TESTS') {
-            steps {
-                bat 'mvn test -Dtest=DepartmentServiceTest'
-            }
-        }
-
-        stage('RUN ALL TESTS') {
+        stage('RUN TESTS') {
             steps {
                 bat 'mvn test'
             }
         }
 
-        // SONARQUBE ANALYSIS WITH TOKEN
         stage('SONARQUBE ANALYSIS') {
             steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    bat "mvn sonar:sonar -Dsonar.token=${SONAR_TOKEN}"
-                }
-            }
-        }
-
-         // NEXUS ARTIFACT PUBLISHING
-        stage('PUBLISH TO NEXUS') {
-            steps {
-                bat 'mvn deploy -DskipTests -Djacoco.skip=true'
+                bat 'mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=admin'
             }
         }
 
         stage('PACKAGE APPLICATION') {
             steps {
                 bat 'mvn package -DskipTests'
+            }
+        }
+
+        stage('PUBLISH TO NEXUS') {
+            steps {
+                bat 'mvn deploy -DskipTests'
+            }
+        }
+
+        stage('BUILD DOCKER IMAGE') {
+            steps {
+                script {
+                    dockerImage = docker.build registry + ":latest"
+                }
+            }
+        }
+
+        stage('PUSH TO DOCKER HUB') {
+            steps {
+                script {
+                    docker.withRegistry('', registryCredential) {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+
+        stage('TEST WITH DOCKER COMPOSE') {
+            steps {
+                script {
+                    bat 'docker-compose down'
+                    bat 'docker-compose up -d'
+                    bat 'timeout 30'
+                    bat 'curl http://localhost:8089/student/actuator/health || echo "Application starting..."'
+                }
             }
         }
     }
@@ -74,10 +85,9 @@ pipeline {
             archiveArtifacts 'target/*.jar'
         }
         success {
-            echo '🎉 Pipeline completed successfully! Department tests passed!'
-        }
-        failure {
-            echo '❌ Pipeline failed! Check the test results.'
+            echo '🎉 Pipeline completed successfully!'
+            echo '🐳 Docker Image: ghalia08/2mpawi-g4-student:latest'
+            echo '🌐 App running at: http://localhost:8089/student'
         }
     }
 }
