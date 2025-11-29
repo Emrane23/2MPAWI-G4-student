@@ -33,11 +33,11 @@ pipeline {
             }
         }
 
-         // SONARQUBE ANALYSIS WITH TOKEN 
+        // SONARQUBE ANALYSIS WITH TOKEN
         stage('SONARQUBE ANALYSIS') {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    bat 'mvn sonar:sonar -Dsonar.token=${SONAR_TOKEN}'
+                    bat "mvn sonar:sonar -Dsonar.token=${SONAR_TOKEN}"
                 }
             }
         }
