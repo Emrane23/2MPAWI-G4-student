@@ -46,10 +46,14 @@ pipeline {
             }
         }
 
-         // NEXUS ARTIFACT PUBLISHING
+        // NEXUS ARTIFACT PUBLISHING - FIXED
         stage('PUBLISH TO NEXUS') {
             steps {
-                bat 'mvn deploy -DskipTests -Djacoco.skip=true'
+                script {
+                    // First package, then deploy
+                    bat 'mvn clean package -DskipTests'
+                    bat 'mvn deploy -DskipTests'
+                }
             }
         }
 
@@ -59,7 +63,7 @@ pipeline {
             }
         }
 
-        // DOCKER STAGES
+        // DOCKER STAGES ADDED
         stage('BUILD DOCKER IMAGE') {
             steps {
                 script {
