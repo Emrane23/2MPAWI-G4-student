@@ -43,6 +43,13 @@ pipeline {
             post {
                 always {
                     junit 'target/surefire-reports/*.xml'
+                    // Check test results and set build status
+                    script {
+                        def testResult = junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
+                        if (testResult.failCount > 0) {
+                            currentBuild.result = 'UNSTABLE'
+                        }
+                    }
                 }
             }
         }
@@ -56,11 +63,11 @@ pipeline {
             }
         }
 
-        // NEXUS ARTIFACT PUBLISHING
+        // NEXUS ARTIFACT PUBLISHING - Make it non-blocking
         stage('PUBLISH TO NEXUS') {
             steps {
                 script {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         bat 'mvn deploy -DskipTests -Djacoco.skip=true'
                     }
                 }
@@ -110,7 +117,7 @@ pipeline {
     post {
         always {
             archiveArtifacts 'target/*.jar'
-            // Final cleanup 
+            // Final cleanup
             script {
                 bat 'docker stop student-app 2>nul || echo "No container to stop in post-cleanup"'
                 bat 'docker rm student-app 2>nul || echo "No container to remove in post-cleanup"'
@@ -120,7 +127,7 @@ pipeline {
             echo '🎉 Pipeline completed successfully! All stages passed!'
         }
         unstable {
-            echo '⚠️ Pipeline completed with warnings (Nexus deployment may have failed)'
+            echo '⚠️ Pipeline completed with warnings (some stages may have failed but core functionality works)'
         }
         failure {
             echo '❌ Pipeline failed! Check the test results.'
