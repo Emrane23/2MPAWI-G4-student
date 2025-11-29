@@ -1,3 +1,4 @@
+// Controller
 package tn.esprit.studentmanagement.controllers;
 
 import lombok.AllArgsConstructor;
@@ -9,7 +10,7 @@ import tn.esprit.studentmanagement.services.IDepartmentService;
 
 import java.util.List;
 
-// First test push by Ghalia
+
 @RestController
 @RequestMapping("/Depatment")
 @CrossOrigin(origins = "http://localhost:4200")

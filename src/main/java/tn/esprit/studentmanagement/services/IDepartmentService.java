@@ -1,3 +1,4 @@
+// Interface
 package tn.esprit.studentmanagement.services;
 
 import tn.esprit.studentmanagement.entities.Department;

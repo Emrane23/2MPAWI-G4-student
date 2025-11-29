@@ -1,3 +1,4 @@
+//Department.java
 package tn.esprit.studentmanagement.entities;
 
 import jakarta.persistence.*;
