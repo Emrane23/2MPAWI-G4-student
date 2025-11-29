@@ -1,8 +1,11 @@
 pipeline {
     agent any
+    environment {
+        registry = "ghalia08/2mpawi-g4-student"
+        registryCredential = 'dockerhub'
+    }
 
     stages {
-        stages {
         stage('Increment Version') {
             steps {
                 script {
@@ -13,6 +16,7 @@ pipeline {
                 }
             }
         }
+
         stage('CHECKOUT GIT') {
             steps {
                 git branch: 'ghaliamannai-2MPAWI-G4', 
