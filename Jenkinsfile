@@ -2,6 +2,18 @@ pipeline {
     agent any
 
     stages {
+        stages {
+        stage('Increment Version') {
+            steps {
+                script {
+                    // Read current version and increment
+                    def currentVersion = readMavenPom().getVersion()
+                    def newVersion = incrementVersion(currentVersion)
+                    sh "mvn versions:set -DnewVersion=${newVersion}"
+                }
+            }
+        }
+        
         stage('CHECKOUT GIT') {
             steps {
                 git branch: 'ghaliamannai-2MPAWI-G4', 
