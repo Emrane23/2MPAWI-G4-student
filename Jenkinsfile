@@ -33,6 +33,13 @@ pipeline {
             }
         }
 
+        // NEW: SONARQUBE CODE ANALYSIS
+        stage('SONARQUBE ANALYSIS') {
+            steps {
+                bat 'mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=Ghourella21#'
+            }
+        }
+
         stage('PACKAGE APPLICATION') {
             steps {
                 bat 'mvn package -DskipTests'
@@ -46,7 +53,7 @@ pipeline {
             archiveArtifacts 'target/*.jar'
         }
         success {
-            echo '🎉 Department tests passed successfully! Pipeline completed!'
+            echo '🎉 Pipeline completed successfully! Department tests passed!'
         }
         failure {
             echo '❌ Pipeline failed! Check the test results.'
