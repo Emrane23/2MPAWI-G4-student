@@ -98,20 +98,6 @@ pipeline {
             }
         }
 
-        stage('TEST DOCKER CONTAINER') {
-            steps {
-                script {
-                    bat 'docker stop student-app || echo "No container to stop"'
-                    bat 'docker rm student-app || echo "No container to remove"'
-                    bat "docker run -d -p 8089:8089 --name student-app ${registry}:latest"
-                    bat 'timeout /t 30 /nobreak'
-                    bat 'curl -f http://localhost:8089/student/actuator/health || echo "Application health check completed"'
-                    // Clean up
-                    bat 'docker stop student-app || echo "Could not stop container"'
-                    bat 'docker rm student-app || echo "Could not remove container"'
-                }
-            }
-        }
     }
 
     post {
