@@ -33,10 +33,12 @@ pipeline {
             }
         }
 
-        // NEW: SONARQUBE CODE ANALYSIS
+         // SONARQUBE ANALYSIS WITH TOKEN 
         stage('SONARQUBE ANALYSIS') {
             steps {
-                bat 'mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=Ghourella21#'
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    bat 'mvn sonar:sonar -Dsonar.token=${SONAR_TOKEN}'
+                }
             }
         }
 
