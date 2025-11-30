@@ -95,7 +95,7 @@ pipeline {
                     bat 'docker pull ghalia08/2mpawi-g4-student:latest'
                     bat 'docker-compose up -d --force-recreate'
                     powershell 'Start-Sleep -Seconds 60'
-                    bat 'curl -f http://localhost:8089/actuator/health || exit 1'
+                    bat 'curl -f http://localhost:8089/student/actuator/health || exit 1'
                 }
             }
         }
