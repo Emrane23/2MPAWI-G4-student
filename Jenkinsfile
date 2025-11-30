@@ -90,15 +90,16 @@ pipeline {
         stage('TEST DOCKER CONTAINER') {
             steps {
                 script {
-                    bat 'docker-compose down --remove-orphans || echo "Cleanup completed"'
-                    bat 'docker rm -f student-mysql-g4 student-app-g4 || echo "Containers removed or not found"'
+                    bat 'docker-compose down --remove-orphans'
+                    bat 'docker rm -f student-mysql-g4 student-app-g4 || echo "Containers not found"'
                     bat 'docker pull ghalia08/2mpawi-g4-student:latest'
                     bat 'docker-compose up -d --force-recreate'
-                    bat 'timeout /t 60 /nobreak'
+                    powershell 'Start-Sleep -Seconds 60'
                     bat 'curl -f http://localhost:8089/actuator/health || exit 1'
                 }
             }
         }
+
     }
 
     post {
