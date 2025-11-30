@@ -90,17 +90,20 @@ pipeline {
         stage('TEST DOCKER CONTAINER') {
             steps {
                 script {
-                    // Stop and remove using docker-compose
-                    sh 'docker-compose down || echo "No containers running"'
+                    // Clean up any existing containers
+                    sh 'docker-compose down || echo "No containers to remove"'
                     
-                    // Start services using docker-compose
+                    // Pull the latest image from Docker Hub
+                    sh 'docker pull ghalia08/2mpawi-g4-student:latest'
+                    
+                    // Start all services
                     sh 'docker-compose up -d'
                     
                     // Wait for services to be ready
-                    sh 'sleep 30'
+                    sh 'sleep 45'
                     
-                    // Test if application is responding
-                    sh 'curl -f http://localhost:8089/actuator/health || echo "Application not ready yet"'
+                    // Test the application
+                    sh 'curl -f http://localhost:8089/actuator/health || exit 1'
                 }
             }
         }
