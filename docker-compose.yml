@@ -20,10 +20,14 @@ services:
     ports:
       - "8089:8089"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/studentdb
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/studentdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       - SPRING_DATASOURCE_USERNAME=studentuser
       - SPRING_DATASOURCE_PASSWORD=studentpass
       - SERVER_PORT=8089
+      - SERVER_SERVLET_CONTEXT_PATH=/student
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
     depends_on:
       mysql-db:
         condition: service_healthy

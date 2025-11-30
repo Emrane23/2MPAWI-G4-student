@@ -93,8 +93,31 @@ pipeline {
                     bat 'docker-compose down --remove-orphans'
                     bat 'docker rm -f student-mysql-g4 student-app-g4 || echo "Containers not found"'
                     bat 'docker pull ghalia08/2mpawi-g4-student:latest'
+                    
+                    echo "Starting services with updated environment variables..."
                     bat 'docker-compose up -d --force-recreate'
-                    powershell 'Start-Sleep -Seconds 60'
+                    
+                    // Wait and debug
+                    powershell 'Start-Sleep -Seconds 30'
+                    
+                    bat '''
+                        echo "=== Debugging Information ==="
+                        echo "1. Container status:"
+                        docker ps -a
+                        
+                        echo "2. Application logs:"
+                        docker logs student-app-g4
+                        
+                        echo "3. Testing database connection from MySQL container:"
+                        docker exec student-mysql-g4 mysql -u studentuser -pstudentpass -e "SHOW DATABASES; USE studentdb; SHOW TABLES;"
+                        
+                        echo "4. Testing endpoints:"
+                        curl -v http://localhost:8089/student/actuator/health || echo "Health endpoint failed"
+                        curl -v http://localhost:8089/student/ || echo "Root endpoint failed"
+                    '''
+                    
+                    // Final health check
+                    powershell 'Start-Sleep -Seconds 30'
                     bat 'curl -f http://localhost:8089/student/actuator/health || exit 1'
                 }
             }
