@@ -13,13 +13,6 @@ pipeline {
             }
         }
 
-        // DIAGNOSTIC: Check what's failing
-        stage('DEBUG - CHECK BUILD STATUS') {
-            steps {
-                echo "Build status check - if you see this, early stages are OK"
-            }
-        }
-
         stage('MVN CLEAN') {
             steps {
                 bat 'mvn clean'
@@ -45,12 +38,7 @@ pipeline {
 
         stage('RUN ALL TESTS') {
             steps {
-                script {
-                    // Catch test failures but continue
-                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        bat 'mvn test'
-                    }
-                }
+                bat 'mvn test'
             }
             post {
                 always {
@@ -62,24 +50,16 @@ pipeline {
         // SONARQUBE ANALYSIS WITH TOKEN
         stage('SONARQUBE ANALYSIS') {
             steps {
-                script {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                            bat "mvn sonar:sonar -Dsonar.token=${SONAR_TOKEN}"
-                        }
-                    }
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    bat "mvn sonar:sonar -Dsonar.token=${SONAR_TOKEN}"
                 }
             }
         }
 
-        // NEXUS ARTIFACT PUBLISHING - Make completely non-blocking
+        // NEXUS ARTIFACT PUBLISHING
         stage('PUBLISH TO NEXUS') {
             steps {
-                script {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        bat 'mvn deploy -DskipTests -Djacoco.skip=true'
-                    }
-                }
+                bat 'mvn deploy -DskipTests -Djacoco.skip=true'
             }
         }
 
@@ -126,19 +106,12 @@ pipeline {
     post {
         always {
             archiveArtifacts 'target/*.jar'
-            script {
-                bat 'docker stop student-app 2>nul || echo "No container to stop in post-cleanup"'
-                bat 'docker rm student-app 2>nul || echo "No container to remove in post-cleanup"'
-            }
         }
         success {
-            echo '🎉 Pipeline completed successfully! Docker image pushed to Docker Hub!'
-        }
-        unstable {
-            echo '⚠️ Pipeline completed with warnings but Docker image was successfully pushed!'
+            echo '🎉 PIPELINE COMPLETED SUCCESSFULLY! All tests passed, Docker image pushed to Docker Hub!'
         }
         failure {
-            echo '❌ Pipeline failed in early stages.'
+            echo '❌ Pipeline failed! Check the test results.'
         }
     }
 }
