@@ -90,24 +90,23 @@ pipeline {
         stage('TEST DOCKER CONTAINER') {
             steps {
                 script {
-                    // Clean up any existing containers
-                    bat 'docker-compose down || echo "No containers to remove"'
+                    echo "Stopping and removing everything..."
+                    bat 'docker-compose down -v --remove-orphans --rmi local'
                     
-                    // Pull the latest image from Docker Hub
+                    echo "Pulling latest image..."
                     bat 'docker pull ghalia08/2mpawi-g4-student:latest'
                     
-                    // Start all services
-                    bat 'docker-compose up -d'
+                    echo "Building and starting fresh..."
+                    bat 'docker-compose up -d --build --force-recreate'
                     
-                    // Wait for services to be ready
-                    bat 'timeout /t 45 /nobreak'
+                    echo "Waiting for startup..."
+                    bat 'timeout /t 60 /nobreak'
                     
-                    // Test the application
+                    echo "Health check..."
                     bat 'curl -f http://localhost:8089/actuator/health || exit 1'
                 }
             }
         }
-    }
 
     post {
         always {
