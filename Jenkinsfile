@@ -91,19 +91,19 @@ pipeline {
             steps {
                 script {
                     // Clean up any existing containers
-                    sh 'docker-compose down || echo "No containers to remove"'
+                    bat 'docker-compose down || echo "No containers to remove"'
                     
                     // Pull the latest image from Docker Hub
-                    sh 'docker pull ghalia08/2mpawi-g4-student:latest'
+                    bat 'docker pull ghalia08/2mpawi-g4-student:latest'
                     
                     // Start all services
-                    sh 'docker-compose up -d'
+                    bat 'docker-compose up -d'
                     
                     // Wait for services to be ready
-                    sh 'sleep 45'
+                    bat 'timeout /t 45 /nobreak'
                     
                     // Test the application
-                    sh 'curl -f http://localhost:8089/actuator/health || exit 1'
+                    bat 'curl -f http://localhost:8089/actuator/health || exit 1'
                 }
             }
         }
