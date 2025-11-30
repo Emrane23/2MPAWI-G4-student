@@ -90,14 +90,17 @@ pipeline {
         stage('TEST DOCKER CONTAINER') {
             steps {
                 script {
-                    bat 'docker stop student-app || echo "No container to stop"'
-                    bat 'docker rm student-app || echo "No container to remove"'
-                    bat "docker run -d -p 8089:8089 --name student-app ${registry}:latest"
-                    bat 'timeout /t 30 /nobreak'
-                    bat 'curl -f http://localhost:8089/student/actuator/health || echo "Application health check completed"'
-                    // Clean up
-                    bat 'docker stop student-app || echo "Could not stop container"'
-                    bat 'docker rm student-app || echo "Could not remove container"'
+                    // Stop and remove using docker-compose
+                    sh 'docker-compose down || echo "No containers running"'
+                    
+                    // Start services using docker-compose
+                    sh 'docker-compose up -d'
+                    
+                    // Wait for services to be ready
+                    sh 'sleep 30'
+                    
+                    // Test if application is responding
+                    sh 'curl -f http://localhost:8089/actuator/health || echo "Application not ready yet"'
                 }
             }
         }
