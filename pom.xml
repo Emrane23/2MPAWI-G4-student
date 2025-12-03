@@ -29,6 +29,21 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <!-- SonarQube Properties -->
+        <sonar.projectKey>student-management</sonar.projectKey>
+        <sonar.projectName>Student Management API</sonar.projectName>
+        <sonar.host.url>http://localhost:9000</sonar.host.url>
+        
+        <!-- JaCoCo Properties -->
+        <jacoco.version>0.8.11</jacoco.version>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <sonar.language>java</sonar.language>
+        <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
+        
+        <!-- Maven Properties -->
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
     <dependencies>
         <dependency>
@@ -66,6 +81,14 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+        
+        <!-- JaCoCo dependency for test coverage -->
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -82,8 +105,112 @@
                     </excludes>
                 </configuration>
             </plugin>
+            
+            <!-- JaCoCo Maven Plugin -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>jacoco-check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.50</minimum> <!-- 50% coverage minimum -->
+                                        </limit>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.50</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>**/entity/*</exclude>
+                        <exclude>**/config/*</exclude>
+                        <exclude>**/dto/*</exclude>
+                        <exclude>**/model/*</exclude>
+                        <exclude>**/*Application.*</exclude>
+                        <exclude>**/StudentManagementApplication.*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            
+            <!-- SonarQube Maven Plugin -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.11.0.3922</version>
+            </plugin>
+            
+            <!-- Maven Surefire Plugin for test reports -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/*IT.java</exclude>
+                        <exclude>**/*IntegrationTest.java</exclude>
+                    </excludes>
+                    <systemPropertyVariables>
+                        <spring.profiles.active>test</spring.profiles.active>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+    
+    <!-- Profiles for different environments -->
+    <profiles>
+        <profile>
+            <id>test</id>
+            <properties>
+                <spring.profiles.active>test</spring.profiles.active>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>sonar</id>
+            <properties>
+                <sonar.host.url>http://localhost:9000</sonar.host.url>
+            </properties>
+        </profile>
+    </profiles>
+
     <distributionManagement>
         <repository>
             <id>nexus-releases</id>
