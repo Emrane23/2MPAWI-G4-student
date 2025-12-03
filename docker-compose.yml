@@ -5,9 +5,9 @@ services:
     container_name: mysql-db
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: testdb  # ← Changez pour correspondre à votre properties
-      MYSQL_USER: user        # ← Changez pour correspondre à votre properties
-      MYSQL_PASSWORD: userpass # ← Changez pour correspondre à votre properties
+      MYSQL_DATABASE: testdb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpass
       MYSQL_ROOT_HOST: '%'
     command: 
       - --bind-address=0.0.0.0
@@ -17,12 +17,14 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "user", "-puserpass"]
       timeout: 20s
       retries: 10
+      interval: 10s
+      start_period: 30s
 
   student-app:
-    build: .
+    image: student-management:latest  # ← Utilisez l'image existante au lieu de build
     container_name: student-management
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/testdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
