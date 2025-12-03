@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management - Hello World</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 800px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .info-box {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .info-box h2 {
+            color: #fad0c4;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .feature h3 {
+            color: #a6c1ee;
+            margin-bottom: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            border-radius: 50px;
+            font-weight: bold;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .button-group {
+            margin-top: 30px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .footer {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        .api-endpoints {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Student Management API</h1>
+        <div class="subtitle">Déployé avec succès via Jenkins CI/CD Pipeline</div>
+        
+        <div class="status-badge">
+            ✅ BUILD #<span id="buildNumber">126</span> - DÉPLOIEMENT RÉUSSI
+        </div>
+        
+        <div class="info-box">
+            <h2>📊 Informations du Déploiement</h2>
+            <p><strong>🕐 Timestamp :</strong> <span id="timestamp"></span></p>
+            <p><strong>🐳 Docker Image :</strong> student-management:<span id="buildId">126</span></p>
+            <p><strong>🌐 URL API :</strong> http://localhost:8083/api</p>
+            <p><strong>🗄️ Base de données :</strong> MySQL sur localhost:3307</p>
+            <p><strong>🔧 Environnement :</strong> Docker Compose</p>
+        </div>
+        
+        <div class="feature-grid">
+            <div class="feature">
+                <h3>✅ CI/CD Jenkins</h3>
+                <p>Pipeline automatisé avec tests, SonarQube, Docker et déploiement</p>
+            </div>
+            <div class="feature">
+                <h3>🐳 Dockerisé</h3>
+                <p>Application conteneurisée avec MySQL pour isolation et portabilité</p>
+            </div>
+            <div class="feature">
+                <h3>🧪 Tests Automatisés</h3>
+                <p>7 tests unitaires exécutés avec JaCoCo pour la couverture</p>
+            </div>
+            <div class="feature">
+                <h3>🔍 Qualité du Code</h3>
+                <p>Analyse SonarQube pour maintenir les standards de qualité</p>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <h2>📡 Endpoints API Disponibles</h2>
+            <div class="api-endpoints">
+                <p>GET  /api/students      - Liste des étudiants</p>
+                <p>POST /api/students      - Créer un étudiant</p>
+                <p>GET  /api/courses       - Liste des cours</p>
+                <p>GET  /helloworld        - Cette page (GET)</p>
+                <p>GET  /                  - Page d'accueil (GET)</p>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn" onclick="window.location.href='/api/students'">
+                📋 Voir les Étudiants
+            </button>
+            <button class="btn" onclick="window.location.href='/swagger-ui.html'">
+                📚 Documentation API
+            </button>
+            <button class="btn" onclick="refreshPage()">
+                🔄 Rafraîchir
+            </button>
+        </div>
+        
+        <div class="footer">
+            <p>Pipeline CI/CD - Projet Université - Groupe 2MPAWI-G4</p>
+            <p>Déployé automatiquement par Jenkins - Tous les tests validés ✅</p>
+        </div>
+    </div>
+
+    <script>
+        // Mettre à jour les informations dynamiques
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('fr-FR');
+        
+        // Simuler un numéro de build (peut être remplacé par une variable d'environnement)
+        const buildNumber = window.location.port || '126';
+        document.getElementById('buildNumber').textContent = buildNumber;
+        document.getElementById('buildId').textContent = buildNumber;
+        
+        function refreshPage() {
+            location.reload();
+        }
+        
+        // Ajouter un effet de frappe pour le titre
+        const title = "🎓 Student Management API";
+        let i = 0;
+        const speed = 50;
+        
+        function typeWriter() {
+            if (i < title.length) {
+                document.querySelector('h1').innerHTML = title.substring(0, i+1);
+                i++;
+                setTimeout(typeWriter, speed);
+            }
+        }
+        
+        // Démarrer l'animation après le chargement
+        window.onload = function() {
+            typeWriter();
+        };
+    </script>
+</body>
+</html>
