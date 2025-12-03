@@ -44,6 +44,12 @@
         <!-- Maven Properties -->
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+
+        <!-- Dans properties -->
+        <sonar.host.url>http://localhost:9000</sonar.host.url>
+        <sonar.projectKey>student-management</sonar.projectKey>
+
+
     </properties>
     <dependencies>
         <dependency>
@@ -173,7 +179,11 @@
                     </excludes>
                 </configuration>
             </plugin>
-
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+            </plugin>
             <!-- SonarQube Maven Plugin -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
