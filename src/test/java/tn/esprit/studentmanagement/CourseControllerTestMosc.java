@@ -5,7 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import tn.esprit.studentmanagement.controllers.CourseController;
@@ -14,20 +15,29 @@ import tn.esprit.studentmanagement.services.CourseService;
 
 import java.util.List;
 
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CourseController.class)
+@Import(CourseControllerTest.TestConfig.class)
 class CourseControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Autowired
     private CourseService courseService;
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    static class TestConfig {
+        @Bean
+        public CourseService courseService() {
+            return mock(CourseService.class);
+        }
+    }
 
     @Test
     void testGetAllCourses() throws Exception {
