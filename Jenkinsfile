@@ -9,8 +9,6 @@ pipeline {
         registry = "ghalia08/2mpawi-g4-student"
         registryCredential = 'ghalia08'
         dockerImage = ''
-        kubeConfigCredentialId = 'kubeid'
-        awsCredentialsId = 'awsCredentials'
     }
 
     stages {
@@ -158,82 +156,19 @@ pipeline {
             }
         }
 
-        stage('TEST AWS CREDENTIALS') {
+        stage('HEALTH CHECK') {
             steps {
-                echo '🔐 Testing AWS Credentials...'
-                withCredentials([file(credentialsId: awsCredentialsId, variable: 'AWS_CREDENTIALS_FILE')]) {
-                    script {
-                        def awsCredentials = readFile(AWS_CREDENTIALS_FILE).trim().split("\n")
-                        env.AWS_ACCESS_KEY_ID = awsCredentials.find { it.startsWith("aws_access_key_id") }.split("=")[1].trim()
-                        env.AWS_SECRET_ACCESS_KEY = awsCredentials.find { it.startsWith("aws_secret_access_key") }.split("=")[1].trim()
-                        def sessionTokenLine = awsCredentials.find { it.startsWith("aws_session_token") }
-                        if (sessionTokenLine) {
-                            env.AWS_SESSION_TOKEN = sessionTokenLine.split("=")[1].trim()
-                        }
-                        
-                        echo "✅ AWS Access Key ID: ${env.AWS_ACCESS_KEY_ID}"
-                        echo "✅ AWS Credentials Loaded Successfully"
-                    }
-                }
-            }
-        }
-
-        stage('DEPLOY TO AWS KUBERNETES') {
-            steps {
-                echo '☸️ Deploying to AWS Kubernetes...'
+                echo '🏥 Performing application health checks...'
                 script {
-                    withCredentials([
-                        file(credentialsId: kubeConfigCredentialId, variable: 'KUBECONFIG'),
-                        file(credentialsId: awsCredentialsId, variable: 'AWS_CREDENTIALS_FILE')
-                    ]) {
-                        // Set AWS credentials as environment variables
-                        def awsCredentials = readFile(AWS_CREDENTIALS_FILE).trim().split("\n")
-                        env.AWS_ACCESS_KEY_ID = awsCredentials.find { it.startsWith("aws_access_key_id") }.split("=")[1].trim()
-                        env.AWS_SECRET_ACCESS_KEY = awsCredentials.find { it.startsWith("aws_secret_access_key") }.split("=")[1].trim()
-                        def sessionTokenLine = awsCredentials.find { it.startsWith("aws_session_token") }
-                        if (sessionTokenLine) {
-                            env.AWS_SESSION_TOKEN = sessionTokenLine.split("=")[1].trim()
-                        }
-                        
-                        // Test AWS connection
-                        bat '''
-                            aws sts get-caller-identity
-                        '''
-                        
-                        echo '📋 Kubeconfig loaded successfully'
-                        
-                        // Apply Kubernetes manifests
-                        bat """
-                            kubectl --kubeconfig=%KUBECONFIG% apply -f deployment.yaml
-                            kubectl --kubeconfig=%KUBECONFIG% apply -f service.yaml
-                        """
-                        
-                        echo '⏳ Waiting for deployments to be ready...'
-                        bat """
-                            kubectl --kubeconfig=%KUBECONFIG% wait --for=condition=available --timeout=300s deployment/student-app-deployment
-                        """
-                        
-                        echo '📋 Getting deployment status...'
-                        bat """
-                            kubectl --kubeconfig=%KUBECONFIG% get deployments
-                            kubectl --kubeconfig=%KUBECONFIG% get pods
-                            kubectl --kubeconfig=%KUBECONFIG% get services
-                        """
+                    echo '⏳ Waiting for application to be ready...'
+                    sleep 15
+                    
+                    retry(5) {
+                        sleep 10
+                        bat 'curl -f http://localhost:8083/student/actuator/health || exit /b 1'
                     }
-                }
-            }
-        }
-
-        stage('GET K8S SERVICE URL') {
-            steps {
-                echo '🌐 Getting Kubernetes Service URL...'
-                script {
-                    withCredentials([file(credentialsId: kubeConfigCredentialId, variable: 'KUBECONFIG')]) {
-                        bat """
-                            kubectl --kubeconfig=%KUBECONFIG% get service student-app-service
-                        """
-                        echo '📝 Note: If using LoadBalancer, it may take a few minutes to provision the external IP'
-                    }
+                    
+                    echo '✅ Application is healthy!'
                 }
             }
         }
@@ -250,30 +185,27 @@ pipeline {
             echo '✅ ========================================='
             echo "📦 Docker image: ${registry}:${BUILD_NUMBER}"
             echo "📦 Docker image: ${registry}:latest"
-            echo '🚀 Deployed via: Terraform (Local) + Kubernetes (AWS)'
+            echo '🚀 Deployed via: Terraform (Local Docker)'
             echo ''
-            echo '🐳 LOCAL ENDPOINTS (Terraform):'
-            echo '   Application: http://localhost:8083/student'
-            echo '   Swagger UI: http://localhost:8083/student/swagger-ui.html'
-            echo '   Actuator: http://localhost:8083/student/actuator'
-            echo '   Metrics: http://localhost:8083/student/actuator/prometheus'
-            echo '   Prometheus: http://localhost:9090'
-            echo '   Grafana: http://localhost:3000 (admin/admin123)'
+            echo '🌐 APPLICATION ENDPOINTS:'
+            echo '   ✅ Application: http://localhost:8083/student'
+            echo '   ✅ Swagger UI: http://localhost:8083/student/swagger-ui.html'
+            echo '   ✅ Actuator: http://localhost:8083/student/actuator'
+            echo '   ✅ Health: http://localhost:8083/student/actuator/health'
+            echo '   ✅ Metrics: http://localhost:8083/student/actuator/prometheus'
             echo ''
-            echo '☸️ KUBERNETES (AWS):'
-            echo '   Run: kubectl get service student-app-service'
-            echo '   to get the LoadBalancer external IP'
+            echo '📊 MONITORING:'
+            echo '   ✅ Prometheus: http://localhost:9090'
+            echo '   ✅ Grafana: http://localhost:3000 (admin/admin123)'
             echo ''
-            echo '🐳 LOCAL CONTAINERS:'
-            echo '   - student-mysql-g4-terraform (MySQL:3307)'
-            echo '   - student-app-g4-terraform (App:8083)'
-            echo '   - prometheus-g4-terraform (Prometheus:9090)'
-            echo '   - grafana-g4-terraform (Grafana:3000)'
+            echo '🐳 RUNNING CONTAINERS:'
+            echo '   ✅ student-mysql-g4-terraform (MySQL:3307)'
+            echo '   ✅ student-app-g4-terraform (App:8083)'
+            echo '   ✅ prometheus-g4-terraform (Prometheus:9090)'
+            echo '   ✅ grafana-g4-terraform (Grafana:3000)'
             echo ''
-            echo '☸️ KUBERNETES PODS:'
-            echo '   - student-app-deployment'
-            echo '   - mysql-deployment'
-            echo ''
+            echo '✅ ========================================='
+            echo '💡 TIP: Run "docker ps" to see all containers'
             echo '✅ ========================================='
         }
         failure {
@@ -281,6 +213,12 @@ pipeline {
             echo '❌ PIPELINE FAILED!'
             echo '❌ ========================================='
             echo 'Check the logs above to identify the failing stage'
+            echo ''
+            echo '🔍 Common troubleshooting:'
+            echo '   - Check if Docker is running'
+            echo '   - Verify Maven is installed'
+            echo '   - Check network connectivity'
+            echo '   - Review stage-specific errors above'
         }
         cleanup {
             echo '🧹 Performing final cleanup...'
