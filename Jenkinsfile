@@ -105,7 +105,7 @@ pipeline {
             steps {
                 echo '🧹 Cleaning up existing containers and infrastructure...'
                 bat '''
-                    docker rm -f student-mysql-g4-terraform student-app-g4-terraform 2>nul || exit /b 0
+                    docker rm -f student-mysql-g4-terraform student-app-g4-terraform prometheus-g4-terraform grafana-g4-terraform 2>nul || exit /b 0
                     docker network rm student-network-g4 2>nul || exit /b 0
                     docker volume rm mysql_data_g4 2>nul || exit /b 0
                 '''
@@ -159,14 +159,23 @@ pipeline {
             echo '✅ ========================================='
             echo "📦 Docker image: ${registry}:latest"
             echo '🚀 Deployed via: Terraform'
-            echo '🌐 Application: http://localhost:8083/student'
-            echo '📚 Swagger UI: http://localhost:8083/student/swagger-ui.html'
-            echo '🗄️ MySQL Port: 3307'
-            echo '🐳 Containers:'
-            echo '   - student-mysql-g4-terraform'
-            echo '   - student-app-g4-terraform'
+            echo ''
+            echo '🌐 ENDPOINTS:'
+            echo '   Application: http://localhost:8083/student'
+            echo '   Swagger UI: http://localhost:8083/student/swagger-ui.html'
+            echo '   Actuator: http://localhost:8083/student/actuator'
+            echo '   Metrics: http://localhost:8083/student/actuator/prometheus'
+            echo '   Prometheus: http://localhost:9090'
+            echo '   Grafana: http://localhost:3000 (admin/admin123)'
+            echo ''
+            echo '🐳 CONTAINERS:'
+            echo '   - student-mysql-g4-terraform (MySQL:3307)'
+            echo '   - student-app-g4-terraform (App:8083)'
+            echo '   - prometheus-g4-terraform (Prometheus:9090)'
+            echo '   - grafana-g4-terraform (Grafana:3000)'
+            echo ''
             echo '🌐 Network: student-network-g4'
-            echo '💾 Volume: mysql_data_g4'
+            echo '💾 Volumes: mysql_data_g4, prometheus_data_g4, grafana_data_g4'
             echo '✅ ========================================='
         }
         failure {
