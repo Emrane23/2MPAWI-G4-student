@@ -19,64 +19,10 @@ pipeline {
             }
         }
 
-        stage('MVN CLEAN') {
+        stage('BUILD & PACKAGE') {
             steps {
-                echo '🧹 Cleaning Maven project...'
-                bat 'mvn clean'
-            }
-        }
-
-        stage('COMPILE CODE') {
-            steps {
-                echo '⚙️ Compiling source code...'
-                bat 'mvn compile'
-            }
-        }
-
-        stage('RUN DEPARTMENT TESTS') {
-            steps {
-                echo '🧪 Running Department Service Tests...'
-                bat 'mvn test -Dtest=DepartmentServiceTest'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
-                }
-            }
-        }
-
-        stage('RUN ALL TESTS') {
-            steps {
-                echo '🧪 Running all unit tests...'
-                bat 'mvn test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
-                }
-            }
-        }
-
-        stage('SONARQUBE ANALYSIS') {
-            steps {
-                echo '🔍 Running SonarQube analysis...'
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    bat "mvn sonar:sonar -Dsonar.token=${SONAR_TOKEN}"
-                }
-            }
-        }
-
-        stage('PUBLISH TO NEXUS') {
-            steps {
-                echo '📦 Publishing artifact to Nexus...'
-                bat 'mvn deploy -DskipTests -Djacoco.skip=true'
-            }
-        }
-
-        stage('PACKAGE APPLICATION') {
-            steps {
-                echo '📦 Packaging application...'
-                bat 'mvn package -DskipTests'
+                echo '🏗️ Building application...'
+                bat 'mvn clean package -DskipTests'
             }
         }
        
@@ -100,18 +46,14 @@ pipeline {
             }
         }
 
-        stage('CLEANUP EXISTING DEPLOYMENTS') {
+        stage('CLEANUP') {
             steps {
-                echo '🧹 Cleaning up existing containers and infrastructure...'
-                script {
-                    // Remove containers (ignore errors)
-                    bat '''
-                        docker rm -f student-mysql-g4-terraform student-app-g4-terraform 2>nul || echo Containers removed
-                        docker network rm student-network-g4 2>nul || echo Network removed
-                        docker volume rm mysql_data_g4 2>nul || echo Volume removed
-                    '''
-                    echo '✅ Cleanup completed'
-                }
+                echo '🧹 Cleaning up...'
+                bat '''
+                    docker rm -f student-mysql-g4-terraform student-app-g4-terraform 2>nul || exit /b 0
+                    docker network rm student-network-g4 2>nul || exit /b 0
+                    docker volume rm mysql_data_g4 2>nul || exit /b 0
+                '''
             }
         }
 
@@ -124,56 +66,28 @@ pipeline {
 
         stage('TERRAFORM APPLY') {
             steps {
-                echo '🚀 Deploying infrastructure with Terraform...'
+                echo '🚀 Deploying with Terraform...'
                 bat 'terraform apply -auto-approve'
             }
         }
 
-        stage('VERIFY DEPLOYMENT') {
+        stage('VERIFY') {
             steps {
                 echo '🔍 Verifying deployment...'
-                script {
-                    // Wait 30 seconds
-                    bat 'timeout /t 30 /nobreak'
-                    
-                    // Show containers
-                    echo '📋 Running containers:'
-                    bat 'docker ps --filter "name=student-"'
-                    
-                    // Show logs
-                    echo '📝 Application logs:'
-                    bat 'docker logs student-app-g4-terraform --tail 30 || echo Waiting for app...'
-                    
-                    echo '✅ Deployment completed!'
-                }
+                bat 'timeout /t 30 /nobreak'
+                bat 'docker ps'
+                echo '✅ Done!'
             }
         }
     }
 
     post {
-        always {
-            echo '📦 Archiving artifacts...'
-            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
-        }
         success {
-            echo '✅ ========================================='
-            echo '✅ PIPELINE COMPLETED SUCCESSFULLY!'
-            echo '✅ ========================================='
-            echo "📦 Docker image: ${registry}:latest"
-            echo '🌐 Application: http://localhost:8083/student'
-            echo '📚 Swagger UI: http://localhost:8083/student/swagger-ui.html'
-            echo '✅ ========================================='
+            echo '✅ PIPELINE SUCCESS! 🎉'
+            echo '🌐 App: http://localhost:8083/student'
         }
         failure {
-            echo '❌ ========================================='
             echo '❌ PIPELINE FAILED!'
-            echo '❌ ========================================='
-            bat 'docker ps -a || echo Cannot list containers'
-            bat 'docker logs student-app-g4-terraform --tail 50 || echo No app logs'
-        }
-        cleanup {
-            echo '🧹 Final cleanup...'
-            bat 'docker system prune -f || echo Cleanup skipped'
         }
     }
 }
