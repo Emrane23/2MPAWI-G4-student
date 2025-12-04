@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: student-app-service
+  labels:
+    app: student-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8083
+    targetPort: 8089
+    protocol: TCP
+    name: http
+  selector:
+    app: student-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  labels:
+    app: mysql
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3306
+    targetPort: 3306
+    protocol: TCP
+  selector:
+    app: mysql
+
