@@ -66,22 +66,6 @@ pipeline {
             }
         }
 
-        stage('QUALITY GATE') {
-            steps {
-                echo '🚦 Waiting for SonarQube Quality Gate...'
-                timeout(time: 5, unit: 'MINUTES') {
-                    script {
-                        def qg = waitForQualityGate()
-                        if (qg.status != 'OK') {
-                            echo "⚠️ Quality Gate status: ${qg.status}"
-                            echo "Pipeline will continue but quality standards not met"
-                        } else {
-                            echo '✅ Quality Gate passed!'
-                        }
-                    }
-                }
-            }
-        }
 
         stage('PUBLISH TO NEXUS') {
             steps {
