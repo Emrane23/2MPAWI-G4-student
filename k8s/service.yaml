@@ -4,11 +4,10 @@ metadata:
   name: student-service
   namespace: dev
 spec:
-  type: NodePort
   selector:
     app: student-management
   ports:
-  - protocol: TCP
-    port: 8080
-    targetPort: 8080 
-    nodePort: 30080
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30080 
+  type: NodePort 
