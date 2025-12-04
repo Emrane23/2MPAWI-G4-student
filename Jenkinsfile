@@ -104,21 +104,11 @@ pipeline {
             steps {
                 echo '🧹 Cleaning up existing containers and infrastructure...'
                 script {
-                    // Clean docker-compose deployments
                     bat 'docker-compose down --remove-orphans || echo "No docker-compose to clean"'
-                    
-                    // Remove any old standalone containers
                     bat 'docker rm -f student-mysql-g4 student-app-g4 || echo "Old containers not found"'
-                    
-                    // Clean up Terraform-managed containers
                     bat 'docker rm -f student-mysql-g4-terraform student-app-g4-terraform || echo "No Terraform containers to clean"'
-                    
-                    // Clean up Docker networks
                     bat 'docker network rm student-network-g4 || echo "Network already removed"'
-                    
-                    // Clean up Docker volumes (optional - removes data)
-                    // bat 'docker volume rm mysql_data_g4 || echo "Volume already removed"'
-                    
+                    bat 'docker volume rm mysql_data_g4 || echo "Volume already removed"'
                     echo '✅ Cleanup completed'
                 }
             }
@@ -127,36 +117,28 @@ pipeline {
         stage('TERRAFORM INIT') {
             steps {
                 echo '🔧 Initializing Terraform...'
-                dir('terraform') {
-                    bat 'terraform init'
-                }
+                bat 'terraform init'
             }
         }
 
         stage('TERRAFORM VALIDATE') {
             steps {
                 echo '✅ Validating Terraform configuration...'
-                dir('terraform') {
-                    bat 'terraform validate'
-                }
+                bat 'terraform validate'
             }
         }
 
         stage('TERRAFORM PLAN') {
             steps {
                 echo '📋 Planning Terraform infrastructure changes...'
-                dir('terraform') {
-                    bat 'terraform plan -out=tfplan'
-                }
+                bat 'terraform plan -out=tfplan'
             }
         }
 
         stage('TERRAFORM APPLY') {
             steps {
                 echo '🚀 Deploying infrastructure with Terraform...'
-                dir('terraform') {
-                    bat 'terraform apply -auto-approve tfplan'
-                }
+                bat 'terraform apply -auto-approve tfplan'
             }
         }
 
@@ -221,9 +203,7 @@ pipeline {
                     
                     // Display Terraform outputs
                     echo '📊 Terraform Infrastructure Details:'
-                    dir('terraform') {
-                        bat 'terraform output'
-                    }
+                    bat 'terraform output'
                     
                     // Display container logs
                     echo '📝 MySQL logs (last 20 lines):'

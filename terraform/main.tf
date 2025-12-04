@@ -11,9 +11,20 @@ provider "docker" {
   host = "npipe:////./pipe/docker_engine"
 }
 
+# Docker Network (create first)
+resource "docker_network" "app_network" {
+  name = "student-network-g4"
+}
+
+# Docker Volume for MySQL
+resource "docker_volume" "mysql_data" {
+  name = "mysql_data_g4"
+}
+
 # MySQL Database Image
 resource "docker_image" "mysql" {
-  name = "mysql:8.0"
+  name         = "mysql:8.0"
+  keep_locally = true
 }
 
 # MySQL Database Container
@@ -48,13 +59,7 @@ resource "docker_container" "mysql" {
     name = docker_network.app_network.name
   }
 
-  # Add healthcheck
-  healthcheck {
-    test     = ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
-    interval = "10s"
-    timeout  = "5s"
-    retries  = 5
-  }
+  restart = "unless-stopped"
 }
 
 # Spring Boot Application Image
@@ -84,22 +89,38 @@ resource "docker_container" "student_app" {
     name = docker_network.app_network.name
   }
 
-  # IMPORTANT: Make sure MySQL is healthy before starting app
   depends_on = [docker_container.mysql]
 
-  # Add restart policy
-  restart = "on-failure"
-  
-  # Maximum 3 restart attempts
-  max_retry_count = 3
+  restart = "unless-stopped"
 }
 
-# Docker Network
-resource "docker_network" "app_network" {
-  name = "student-network-g4"
+# Outputs
+output "mysql_container_name" {
+  description = "MySQL Container Name"
+  value       = docker_container.mysql.name
 }
 
-# Docker Volume for MySQL Data Persistence
-resource "docker_volume" "mysql_data" {
-  name = "mysql_data_g4"
+output "app_container_name" {
+  description = "Application Container Name"
+  value       = docker_container.student_app.name
+}
+
+output "app_url" {
+  description = "Application URL"
+  value       = "http://localhost:8083/student"
+}
+
+output "swagger_url" {
+  description = "Swagger UI URL"
+  value       = "http://localhost:8083/student/swagger-ui.html"
+}
+
+output "network_name" {
+  description = "Docker Network Name"
+  value       = docker_network.app_network.name
+}
+
+output "volume_name" {
+  description = "MySQL Volume Name"
+  value       = docker_volume.mysql_data.name
 }
