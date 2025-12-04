@@ -77,7 +77,7 @@ resource "docker_container" "student_app" {
   ]
 
   ports {
-    internal = 8083
+    internal = 8089
     external = 8083
   }
 
