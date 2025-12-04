@@ -107,7 +107,14 @@ pipeline {
                 bat '''
                     docker rm -f student-mysql-g4-terraform student-app-g4-terraform prometheus-g4-terraform grafana-g4-terraform 2>nul || exit /b 0
                     docker network rm student-network-g4 2>nul || exit /b 0
-                    docker volume rm mysql_data_g4 2>nul || exit /b 0
+                    docker volume rm mysql_data_g4 prometheus_data_g4 grafana_data_g4 2>nul || exit /b 0
+                '''
+                echo '🗑️ Cleaning Terraform state...'
+                bat '''
+                    del /F /Q .terraform.lock.hcl 2>nul || exit /b 0
+                    del /F /Q terraform.tfstate 2>nul || exit /b 0
+                    del /F /Q terraform.tfstate.backup 2>nul || exit /b 0
+                    rmdir /S /Q .terraform 2>nul || exit /b 0
                 '''
             }
         }
