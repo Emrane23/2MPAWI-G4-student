@@ -1,8 +1,8 @@
 pipeline {
     agent any
-
+    
     tools {
-        terraform 'Terraform' 
+        terraform 'Terraform'  // Your configured Terraform tool
     }
     
     environment {
@@ -104,16 +104,20 @@ pipeline {
             steps {
                 echo '🧹 Cleaning up existing containers and infrastructure...'
                 script {
-                    // Stop and remove docker-compose deployments
+                    // Clean docker-compose deployments
                     bat 'docker-compose down --remove-orphans || echo "No docker-compose to clean"'
                     
                     // Remove any old standalone containers
                     bat 'docker rm -f student-mysql-g4 student-app-g4 || echo "Old containers not found"'
                     
-                    // Destroy previous Terraform deployment (if exists)
-                    dir('terraform') {
-                        bat 'terraform destroy -auto-approve || echo "No previous Terraform deployment"'
-                    }
+                    // Clean up Terraform-managed containers
+                    bat 'docker rm -f student-mysql-g4-terraform student-app-g4-terraform || echo "No Terraform containers to clean"'
+                    
+                    // Clean up Docker networks
+                    bat 'docker network rm student-network-g4 || echo "Network already removed"'
+                    
+                    // Clean up Docker volumes (optional - removes data)
+                    // bat 'docker volume rm mysql_data_g4 || echo "Volume already removed"'
                     
                     echo '✅ Cleanup completed'
                 }
@@ -211,12 +215,8 @@ pipeline {
                     bat 'docker ps --filter name=student-app-g4-terraform --format "{{.Status}}" | findstr "Up" >nul'
                     echo '✅ Application container is running'
                     
-                    // Check if app is connected to MySQL
-                    echo '🔍 Testing database connectivity...'
-                    bat 'docker exec student-mysql-g4-terraform mysql -u app_user -papp_password -e "SELECT 1" student_management'
-                    
-                    // Display network information
-                    echo '🌐 Network configuration:'
+                    // Check network connectivity
+                    echo '🌐 Checking network connectivity...'
                     bat 'docker network inspect student-network-g4'
                     
                     // Display Terraform outputs
@@ -225,17 +225,17 @@ pipeline {
                         bat 'terraform output'
                     }
                     
-                    // Display container logs (last 30 lines)
-                    echo '📝 MySQL logs:'
-                    bat 'docker logs --tail 30 student-mysql-g4-terraform'
+                    // Display container logs
+                    echo '📝 MySQL logs (last 20 lines):'
+                    bat 'docker logs --tail 20 student-mysql-g4-terraform || echo "Cannot fetch MySQL logs"'
                     
-                    echo '📝 Application logs:'
-                    bat 'docker logs --tail 50 student-app-g4-terraform'
+                    echo '📝 Application logs (last 50 lines):'
+                    bat 'docker logs --tail 50 student-app-g4-terraform || echo "Cannot fetch app logs"'
                     
                     // Try to access health endpoint
                     echo '🔍 Testing application health endpoint...'
                     powershell '''
-                        $maxAttempts = 10
+                        $maxAttempts = 15
                         $attempt = 0
                         $isHealthy = $false
                         
@@ -252,12 +252,13 @@ pipeline {
                                 }
                             } catch {
                                 Write-Host "⏳ Application not ready yet, waiting..."
-                                Start-Sleep -Seconds 3
+                                Start-Sleep -Seconds 5
                             }
                         }
                         
                         if (-not $isHealthy) {
-                            Write-Host "⚠️ Application health check did not pass, but containers are running"
+                            Write-Host "⚠️ Application health check did not pass within timeout"
+                            Write-Host "Containers are running but application may still be starting..."
                         }
                     '''
                     
@@ -276,27 +277,28 @@ pipeline {
             echo '✅ ========================================='
             echo '✅ PIPELINE COMPLETED SUCCESSFULLY!'
             echo '✅ ========================================='
-            echo '📦 Docker image pushed to: ${registry}:latest'
-            echo '🚀 Application deployed via Terraform'
+            echo "📦 Docker image: ${registry}:latest"
+            echo '🚀 Deployed via: Terraform'
             echo '🌐 Application URL: http://localhost:8083/student'
             echo '📚 Swagger UI: http://localhost:8083/student/swagger-ui.html'
             echo '🗄️ MySQL Port: 3307'
+            echo '🐳 Containers:'
+            echo '   - student-mysql-g4-terraform'
+            echo '   - student-app-g4-terraform'
+            echo '🌐 Network: student-network-g4'
+            echo '💾 Volume: mysql_data_g4'
             echo '✅ ========================================='
         }
         failure {
             echo '❌ ========================================='
             echo '❌ PIPELINE FAILED!'
             echo '❌ ========================================='
-            echo '📋 Showing container logs for debugging...'
+            echo '📋 Debugging information:'
             
-            // Show application logs
-            bat 'docker logs student-app-g4-terraform || echo "No app container found"'
-            
-            // Show MySQL logs
-            bat 'docker logs student-mysql-g4-terraform || echo "No MySQL container found"'
-            
-            // Show container status
-            bat 'docker ps -a'
+            bat 'docker ps -a || echo "Cannot list containers"'
+            bat 'docker network ls || echo "Cannot list networks"'
+            bat 'docker logs student-app-g4-terraform || echo "No app container"'
+            bat 'docker logs student-mysql-g4-terraform || echo "No MySQL container"'
             
             echo '❌ ========================================='
         }
