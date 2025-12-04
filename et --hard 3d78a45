@@ -1,0 +1,53 @@
+[33m2717242[m[33m ([m[1;36mHEAD -> [m[1;32mghaliamannai-2MPAWI-G4[m[33m, [m[1;31morigin/ghaliamannai-2MPAWI-G4[m[33m)[m Add Terraform and Prometheus
+[33m3d78a45[m Fix docker issues
+[33m6840755[m Fix docker issues
+[33m711cb06[m Fix docker issues
+[33m17d3cb0[m Fix docker issues
+[33m125109e[m Fix syntax issues
+[33m7bfa2a8[m Fix syntax issues
+[33mdffa71d[m Fix docker issues
+[33mdad0f47[m Fix docker issues
+[33m90df687[m Fix docker issues
+[33m97191c2[m Fix syntax issues
+[33md3bf389[m Fix docker issues
+[33m3c74772[m Fix docker issues
+[33mc7d1516[m Fix docker hub issues
+[33mdc46543[m Fix docker issues
+[33me803424[m Fix docker hub credentials issues
+[33m6a79bda[m Fix docker hub push issues
+[33mee31433[m Fix docker test issues
+[33mbc97ef0[m Fix docker hub credentials issues
+[33m82cb0b0[m Fix docker issues
+[33m32e346a[m Fix docker issues
+[33m0846ac0[m Fix Nexus version issues
+[33m30fe208[m Fix docker hub issues
+[33mf70d0d3[m Fix docker issues
+[33m48f2e9c[m Fix syntax
+[33m2038c2c[m Fix syntax
+[33m735694f[m Add docker
+[33m4abc53d[m Fix Jenkinsfile and pom.xml
+[33m8a53191[m Fix pom.xml
+[33m7bbc5e4[m Fix pom.xml
+[33m86c5604[m Add Dockerfile and docker-compose.yml and fix the issues
+[33mbe4acb7[m Fixe Jenkinsfile
+[33mc58b3d0[m Add Dockerfile and docker-compose.yml and fix the issues
+[33me07c465[m Configure the pipeline to auto-increment versions
+[33m331c808[m Increment the version number to 0.0.4-RELEASE
+[33me941783[m Add Nexus artifact deployment to Jenkins pipeline
+[33m5a6f367[m Fix the pom.xml
+[33mb72d2c4[m Add proper SonarQube token authentication to Jenkins pipeline
+[33m37c33ec[m Fix SonarQube authentication with token
+[33m4810aa8[m Add SonarQube integration for code quality analysis
+[33mcf1caf7[m Add Jenkins pipline configuration
+[33mdf479e4[m Add complete DepartmentService tests - all 5  tests passing
+[33m274e2fb[m Added CRUD test for Department
+[33m7ec0b93[m fixing coonnection to MySQL server
+[33m1f07358[m fix test config issues
+[33m12b19ba[m config tests
+[33m900df52[m config database
+[33m6813443[m Add test comment in DepartmentController for first push
+[33m0df4007[m dockerize the project : adding dockerfile and docker compose
+[33m0cce61e[m  install student-managment project
+[33mbca4e22[m Modification 3 du fichier file.txt
+[33m1aa0a37[m Modification du fichier file.txt
+[33m82b707b[m initialisation du projet
