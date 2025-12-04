@@ -1,5 +1,9 @@
 pipeline {
     agent any
+
+    tools {
+        terraform 'Terraform' 
+    }
     
     environment {
         registry = "ghalia08/2mpawi-g4-student"
