@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     tools {
-        terraform 'Terraform'  // Your configured Terraform tool
+        terraform 'Terraform'
     }
     
     environment {
@@ -104,11 +104,12 @@ pipeline {
             steps {
                 echo '🧹 Cleaning up existing containers and infrastructure...'
                 script {
-                    bat 'docker-compose down --remove-orphans || echo "No docker-compose to clean"'
-                    bat 'docker rm -f student-mysql-g4 student-app-g4 || echo "Old containers not found"'
-                    bat 'docker rm -f student-mysql-g4-terraform student-app-g4-terraform || echo "No Terraform containers to clean"'
-                    bat 'docker network rm student-network-g4 || echo "Network already removed"'
-                    bat 'docker volume rm mysql_data_g4 || echo "Volume already removed"'
+                    // Remove containers (ignore errors)
+                    bat '''
+                        docker rm -f student-mysql-g4-terraform student-app-g4-terraform 2>nul || echo Containers removed
+                        docker network rm student-network-g4 2>nul || echo Network removed
+                        docker volume rm mysql_data_g4 2>nul || echo Volume removed
+                    '''
                     echo '✅ Cleanup completed'
                 }
             }
@@ -117,132 +118,33 @@ pipeline {
         stage('TERRAFORM INIT') {
             steps {
                 echo '🔧 Initializing Terraform...'
-                bat 'terraform init'
-            }
-        }
-
-        stage('TERRAFORM VALIDATE') {
-            steps {
-                echo '✅ Validating Terraform configuration...'
-                bat 'terraform validate'
-            }
-        }
-
-        stage('TERRAFORM PLAN') {
-            steps {
-                echo '📋 Planning Terraform infrastructure changes...'
-                bat 'terraform plan -out=tfplan'
+                bat 'terraform init -upgrade'
             }
         }
 
         stage('TERRAFORM APPLY') {
             steps {
                 echo '🚀 Deploying infrastructure with Terraform...'
-                bat 'terraform apply -auto-approve tfplan'
+                bat 'terraform apply -auto-approve'
             }
         }
 
         stage('VERIFY DEPLOYMENT') {
             steps {
+                echo '🔍 Verifying deployment...'
                 script {
-                    echo '🔍 Verifying Terraform deployment...'
+                    // Wait 30 seconds
+                    bat 'timeout /t 30 /nobreak'
                     
-                    // Wait for MySQL to be fully ready
-                    echo '⏳ Waiting for MySQL to be ready...'
-                    powershell '''
-                        $maxAttempts = 30
-                        $attempt = 0
-                        $isHealthy = $false
-                        
-                        while (-not $isHealthy -and $attempt -lt $maxAttempts) {
-                            $attempt++
-                            Write-Host "Checking MySQL health (attempt $attempt/$maxAttempts)..."
-                            
-                            try {
-                                docker exec student-mysql-g4-terraform mysqladmin ping -h localhost -u root -prootpassword 2>$null
-                                if ($LASTEXITCODE -eq 0) {
-                                    $isHealthy = $true
-                                    Write-Host "✅ MySQL is healthy!"
-                                }
-                            } catch {
-                                Write-Host "⏳ MySQL not ready yet, waiting..."
-                            }
-                            
-                            if (-not $isHealthy) {
-                                Start-Sleep -Seconds 2
-                            }
-                        }
-                        
-                        if (-not $isHealthy) {
-                            Write-Host "❌ MySQL failed to become healthy"
-                            exit 1
-                        }
-                    '''
+                    // Show containers
+                    echo '📋 Running containers:'
+                    bat 'docker ps --filter "name=student-"'
                     
-                    // Wait for application to start
-                    echo '⏳ Waiting for application to start...'
-                    powershell 'Start-Sleep -Seconds 30'
+                    // Show logs
+                    echo '📝 Application logs:'
+                    bat 'docker logs student-app-g4-terraform --tail 30 || echo Waiting for app...'
                     
-                    // Display all running containers
-                    echo '📋 Current running containers:'
-                    bat 'docker ps'
-                    
-                    // Verify MySQL container is running
-                    echo '🔍 Checking MySQL container...'
-                    bat 'docker ps --filter name=student-mysql-g4-terraform --format "{{.Status}}" | findstr "Up" >nul'
-                    echo '✅ MySQL container is running'
-                    
-                    // Verify App container is running
-                    echo '🔍 Checking Application container...'
-                    bat 'docker ps --filter name=student-app-g4-terraform --format "{{.Status}}" | findstr "Up" >nul'
-                    echo '✅ Application container is running'
-                    
-                    // Check network connectivity
-                    echo '🌐 Checking network connectivity...'
-                    bat 'docker network inspect student-network-g4'
-                    
-                    // Display Terraform outputs
-                    echo '📊 Terraform Infrastructure Details:'
-                    bat 'terraform output'
-                    
-                    // Display container logs
-                    echo '📝 MySQL logs (last 20 lines):'
-                    bat 'docker logs --tail 20 student-mysql-g4-terraform || echo "Cannot fetch MySQL logs"'
-                    
-                    echo '📝 Application logs (last 50 lines):'
-                    bat 'docker logs --tail 50 student-app-g4-terraform || echo "Cannot fetch app logs"'
-                    
-                    // Try to access health endpoint
-                    echo '🔍 Testing application health endpoint...'
-                    powershell '''
-                        $maxAttempts = 15
-                        $attempt = 0
-                        $isHealthy = $false
-                        
-                        while (-not $isHealthy -and $attempt -lt $maxAttempts) {
-                            $attempt++
-                            Write-Host "Testing health endpoint (attempt $attempt/$maxAttempts)..."
-                            
-                            try {
-                                $response = Invoke-WebRequest -Uri "http://localhost:8083/student/actuator/health" -UseBasicParsing -TimeoutSec 5
-                                if ($response.StatusCode -eq 200) {
-                                    $isHealthy = $true
-                                    Write-Host "✅ Application is healthy!"
-                                    Write-Host $response.Content
-                                }
-                            } catch {
-                                Write-Host "⏳ Application not ready yet, waiting..."
-                                Start-Sleep -Seconds 5
-                            }
-                        }
-                        
-                        if (-not $isHealthy) {
-                            Write-Host "⚠️ Application health check did not pass within timeout"
-                            Write-Host "Containers are running but application may still be starting..."
-                        }
-                    '''
-                    
-                    echo '✅ Verification completed!'
+                    echo '✅ Deployment completed!'
                 }
             }
         }
@@ -258,33 +160,20 @@ pipeline {
             echo '✅ PIPELINE COMPLETED SUCCESSFULLY!'
             echo '✅ ========================================='
             echo "📦 Docker image: ${registry}:latest"
-            echo '🚀 Deployed via: Terraform'
-            echo '🌐 Application URL: http://localhost:8083/student'
+            echo '🌐 Application: http://localhost:8083/student'
             echo '📚 Swagger UI: http://localhost:8083/student/swagger-ui.html'
-            echo '🗄️ MySQL Port: 3307'
-            echo '🐳 Containers:'
-            echo '   - student-mysql-g4-terraform'
-            echo '   - student-app-g4-terraform'
-            echo '🌐 Network: student-network-g4'
-            echo '💾 Volume: mysql_data_g4'
             echo '✅ ========================================='
         }
         failure {
             echo '❌ ========================================='
             echo '❌ PIPELINE FAILED!'
             echo '❌ ========================================='
-            echo '📋 Debugging information:'
-            
-            bat 'docker ps -a || echo "Cannot list containers"'
-            bat 'docker network ls || echo "Cannot list networks"'
-            bat 'docker logs student-app-g4-terraform || echo "No app container"'
-            bat 'docker logs student-mysql-g4-terraform || echo "No MySQL container"'
-            
-            echo '❌ ========================================='
+            bat 'docker ps -a || echo Cannot list containers'
+            bat 'docker logs student-app-g4-terraform --tail 50 || echo No app logs'
         }
         cleanup {
-            echo '🧹 Performing final cleanup...'
-            bat 'docker system prune -f || echo "Cleanup skipped"'
+            echo '🧹 Final cleanup...'
+            bat 'docker system prune -f || echo Cleanup skipped'
         }
     }
 }
