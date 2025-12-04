@@ -74,17 +74,29 @@ pipeline {
         stage('VERIFY') {
             steps {
                 echo '🔍 Verifying deployment...'
-                bat 'timeout /t 30 /nobreak'
-                bat 'docker ps'
-                echo '✅ Done!'
+                script {
+                    echo '⏳ Waiting 30 seconds for containers to start...'
+                    sleep 30
+                    
+                    echo '📋 Running containers:'
+                    bat 'docker ps --filter "name=student-"'
+                    
+                    echo '✅ Deployment verified!'
+                }
             }
         }
     }
 
     post {
         success {
+            echo '✅ ========================================='
             echo '✅ PIPELINE SUCCESS! 🎉'
+            echo '✅ ========================================='
+            echo "📦 Docker image: ${registry}:latest"
             echo '🌐 App: http://localhost:8083/student'
+            echo '📚 Swagger: http://localhost:8083/student/swagger-ui.html'
+            echo '🗄️ MySQL: localhost:3307'
+            echo '✅ ========================================='
         }
         failure {
             echo '❌ PIPELINE FAILED!'
