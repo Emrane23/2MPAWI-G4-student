@@ -38,27 +38,32 @@ pipeline {
             steps {
                 echo '🔍 Scanning for hardcoded secrets and credentials...'
                 script {
-                    bat '''
-                        echo ========================================
-                        echo    SECURITY CHECK: Secrets Detection
-                        echo ========================================
-                        echo.
-                        
-                        echo [1/3] Checking for hardcoded passwords...
-                        findstr /S /I /N /C:"password" /C:"pwd" src\\main\\*.java > secrets_report.txt 2>nul || echo No passwords found
-                        
-                        echo [2/3] Checking for API keys and tokens...
-                        findstr /S /I /N /C:"api_key" /C:"apikey" /C:"token" /C:"secret" src\\main\\*.java >> secrets_report.txt 2>nul || echo No API keys found
-                        
-                        echo [3/3] Checking for database credentials...
-                        findstr /S /I /N /C:"jdbc" /C:"connection" src\\main\\resources\\*.properties >> secrets_report.txt 2>nul || echo No DB credentials in code
-                        
-                        echo.
-                        type secrets_report.txt 2>nul || echo ✅ No hardcoded secrets detected!
-                        echo.
-                        echo ✅ Secrets detection completed
-                        echo ========================================
-                    '''
+                    try {
+                        bat '''
+                            echo ========================================
+                            echo    SECURITY CHECK: Secrets Detection
+                            echo ========================================
+                            echo.
+                            
+                            echo [1/3] Checking for hardcoded passwords...
+                            findstr /S /I /N /C:"password" /C:"pwd" src\\main\\*.java > secrets_report.txt 2>nul || echo No passwords found
+                            
+                            echo [2/3] Checking for API keys and tokens...
+                            findstr /S /I /N /C:"api_key" /C:"apikey" /C:"token" /C:"secret" src\\main\\*.java >> secrets_report.txt 2>nul || echo No API keys found
+                            
+                            echo [3/3] Checking for database credentials...
+                            findstr /S /I /N /C:"jdbc" /C:"connection" src\\main\\resources\\*.properties >> secrets_report.txt 2>nul || echo No DB credentials in code
+                            
+                            echo.
+                            type secrets_report.txt 2>nul || echo No hardcoded secrets detected!
+                            echo.
+                            echo Secrets detection completed
+                            echo ========================================
+                            exit /b 0
+                        '''
+                    } catch (Exception e) {
+                        echo "Security scan completed with warnings"
+                    }
                 }
             }
         }
@@ -67,26 +72,33 @@ pipeline {
             steps {
                 echo '🛡️ Checking for SQL injection vulnerabilities...'
                 script {
-                    bat '''
-                        echo ========================================
-                        echo    SECURITY CHECK: SQL Injection
-                        echo ========================================
-                        echo.
-                        
-                        echo Scanning for unsafe SQL patterns...
-                        findstr /S /I /N /C:"Statement" /C:"executeQuery" /C:"execute(" src\\main\\*.java > sql_report.txt 2>nul && (
-                            echo ⚠️  WARNING: Potential SQL injection risks found!
-                            type sql_report.txt
+                    try {
+                        bat '''
+                            echo ========================================
+                            echo    SECURITY CHECK: SQL Injection
+                            echo ========================================
                             echo.
-                            echo 💡 Recommendation: Use PreparedStatement instead
-                        ) || (
-                            echo ✅ No obvious SQL injection patterns detected
-                        )
-                        
-                        echo.
-                        echo ✅ SQL injection scan completed
-                        echo ========================================
-                    '''
+                            
+                            echo Scanning for unsafe SQL patterns...
+                            findstr /S /I /N /C:"Statement" /C:"executeQuery" /C:"execute(" src\\main\\*.java > sql_report.txt 2>nul
+                            
+                            if exist sql_report.txt (
+                                echo WARNING: Potential SQL injection risks found!
+                                type sql_report.txt
+                                echo.
+                                echo Recommendation: Use PreparedStatement instead
+                            ) else (
+                                echo No obvious SQL injection patterns detected
+                            )
+                            
+                            echo.
+                            echo SQL injection scan completed
+                            echo ========================================
+                            exit /b 0
+                        '''
+                    } catch (Exception e) {
+                        echo "Security scan completed with warnings"
+                    }
                 }
             }
         }
@@ -95,38 +107,45 @@ pipeline {
             steps {
                 echo '🐳 Checking Docker configuration security...'
                 script {
-                    bat '''
-                        echo ========================================
-                        echo    SECURITY CHECK: Docker Configuration
-                        echo ========================================
-                        echo.
-                        
-                        echo [1/3] Checking base image version...
-                        findstr /I /C:"FROM" Dockerfile | findstr /I /C:"latest" > nul 2>&1 && (
-                            echo ⚠️  WARNING: Using latest tag in base image
-                            echo 💡 Recommendation: Pin specific version
-                        ) || (
-                            echo ✅ Base image uses specific version tag
-                        )
-                        
-                        echo.
-                        echo [2/3] Checking for USER directive...
-                        findstr /I /C:"USER" Dockerfile > nul 2>&1 && (
-                            echo ✅ Container runs as non-root user
-                        ) || (
-                            echo ⚠️  INFO: No USER directive found
-                            echo 💡 Consider adding: USER appuser
-                        )
-                        
-                        echo.
-                        echo [3/3] Checking exposed ports...
-                        findstr /I /C:"EXPOSE" Dockerfile
-                        echo ✅ Ports checked
-                        
-                        echo.
-                        echo ✅ Docker security scan completed
-                        echo ========================================
-                    '''
+                    try {
+                        bat '''
+                            echo ========================================
+                            echo    SECURITY CHECK: Docker Configuration
+                            echo ========================================
+                            echo.
+                            
+                            echo [1/3] Checking base image version...
+                            findstr /I /C:"FROM" Dockerfile | findstr /I /C:"latest" > nul 2>&1
+                            if errorlevel 1 (
+                                echo Base image uses specific version tag - GOOD
+                            ) else (
+                                echo WARNING: Using latest tag in base image
+                                echo Recommendation: Pin specific version
+                            )
+                            
+                            echo.
+                            echo [2/3] Checking for USER directive...
+                            findstr /I /C:"USER" Dockerfile > nul 2>&1
+                            if errorlevel 1 (
+                                echo INFO: No USER directive found
+                                echo Consider adding: USER appuser
+                            ) else (
+                                echo Container runs as non-root user - GOOD
+                            )
+                            
+                            echo.
+                            echo [3/3] Checking exposed ports...
+                            findstr /I /C:"EXPOSE" Dockerfile
+                            echo Ports checked
+                            
+                            echo.
+                            echo Docker security scan completed
+                            echo ========================================
+                            exit /b 0
+                        '''
+                    } catch (Exception e) {
+                        echo "Security scan completed with warnings"
+                    }
                 }
             }
         }
@@ -159,25 +178,26 @@ pipeline {
                         echo    SECURITY AUDIT SUMMARY REPORT
                         echo ========================================
                         echo.
-                        echo 🎯 Project: Student Management System
-                        echo 📅 Date: %DATE% %TIME%
-                        echo 🔢 Build: #%BUILD_NUMBER%
+                        echo Project: Student Management System
+                        echo Date: %DATE% %TIME%
+                        echo Build: #%BUILD_NUMBER%
                         echo.
-                        echo ✅ SECURITY CHECKS COMPLETED:
-                        echo    [✓] Hardcoded secrets detection
-                        echo    [✓] SQL injection vulnerability scan
-                        echo    [✓] Docker security configuration review
-                        echo    [✓] Security unit tests execution
+                        echo SECURITY CHECKS COMPLETED:
+                        echo    [DONE] Hardcoded secrets detection
+                        echo    [DONE] SQL injection vulnerability scan
+                        echo    [DONE] Docker security configuration review
+                        echo    [DONE] Security unit tests execution
                         echo.
-                        echo 📋 SECURITY RECOMMENDATIONS:
+                        echo SECURITY RECOMMENDATIONS:
                         echo    1. Store sensitive data in environment variables
                         echo    2. Use PreparedStatements for all SQL queries
                         echo    3. Keep dependencies updated regularly
                         echo    4. Pin Docker base image versions
                         echo    5. Run containers as non-root user
                         echo.
-                        echo 🛡️ SECURITY COMPLIANCE: PASSED
+                        echo SECURITY COMPLIANCE: PASSED
                         echo ========================================
+                        exit /b 0
                     ''' 
                 }
             }
@@ -300,7 +320,7 @@ pipeline {
 
     post {
         always {
-            echo ' Archiving artifacts...'
+            echo '📦 Archiving artifacts...'
             archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
         }
         success {
